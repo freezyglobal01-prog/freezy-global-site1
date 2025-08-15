@@ -1,40 +1,31 @@
-// cart.js
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-// Add to cart
-function addToCart(id){
-  const product = products.find(p=>p.id===id);
-  const cartItem = cart.find(item=>item.id===id);
-  if(cartItem){
-    cartItem.qty++;
-  } else {
-    cart.push({...product, qty:1});
-  }
-  localStorage.setItem("cart", JSON.stringify(cart));
-  alert(`${product.name} added to cart!`);
+// cart.js - floating cart & quantity
+function updateFloatingCart(){
+  const cart=JSON.parse(localStorage.getItem("cart"))||[];
+  const cartBtn=document.getElementById("floatingCart");
+  if(cart.length>0){
+    cartBtn.style.display="block";
+    let count=0; cart.forEach(p=>count+=p.qty);
+    document.getElementById("cartCount").innerText=count;
+  } else cartBtn.style.display="none";
 }
 
-// Remove from cart
-function removeFromCart(id){
-  cart = cart.filter(item=>item.id!==id);
-  localStorage.setItem("cart", JSON.stringify(cart));
-  renderCart();
+function addToCart(id, productsList){
+  const product=productsList.find(p=>p.id===id);
+  const qty=parseInt(document.getElementById(`qty-${id}`).innerText);
+  let cart=JSON.parse(localStorage.getItem("cart"))||[];
+  const exist=cart.find(c=>c.id===id);
+  if(exist) exist.qty+=qty; else cart.push({...product,qty});
+  localStorage.setItem("cart",JSON.stringify(cart));
+  updateFloatingCart();
 }
 
-// Update quantity
-function updateQty(id, qty){
-  const item = cart.find(i=>i.id===id);
-  if(item){
-    item.qty = qty;
-    if(item.qty<=0) removeFromCart(id);
-  }
-  localStorage.setItem("cart", JSON.stringify(cart));
-  renderCart();
+function changeQty(id){
+  const span=document.getElementById(`qty-${id}`);
+  let val=parseInt(span.innerText);
+  if(val<1) val=1; span.innerText=val;
 }
 
-// Render cart items
-function renderCart(){
-  const container = document.getElementById("cartItems");
+updateFloatingCart();  const container = document.getElementById("cartItems");
   if(!container) return;
   container.innerHTML = "";
   let total=0;
