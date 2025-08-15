@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products - Freezy Global</title>
+<link rel="stylesheet" href="style.css">
+<script src="products.js"></script>
+<script src="cart.js"></script>
+</head>
+<body>
+<header>
+<h1>Freezy Global Products</h1>
+<nav>
+<a href="index.html">Home</a>
+<a href="services.html">Services</a>
+<a href="products.html">Products</a>
+<a href="cart.html">Cart</a>
+<a href="admin.html">Admin</a>
+</nav>
+</header>
+
+<section>
+<h2>All Products</h2>
+<div class="product-grid">
+  <script>
+    products.filter(p=>p.type==="product").forEach(p=>{
+      document.write(`
+      <div class="card">
+        <img src="${p.img}" alt="${p.name}">
+        <h3>${p.name}</h3>
+        <p>₦${p.price}</p>
+        <button onclick="addToCart(${p.id})">Add to Cart</button>
+      </div>`);
+    });
+  </script>
+</div>
+</section>
+</body>
+</html>
