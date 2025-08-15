@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Freezy Global</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { font-family: Arial, sans-serif; background:#f5f5f5; display:flex; justify-content:center; align-items:center; height:100vh; }
+.login-box { background:#fff; padding:30px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.2); width:350px; text-align:center; }
+.login-box h2 { color:#000; margin-bottom:20px; }
+.login-box input { width:100%; padding:12px; margin:10px 0; border-radius:5px; border:1px solid #ccc; }
+.login-box button { width:100%; padding:12px; margin-top:10px; border:none; background:#FFD700; color:#000; font-weight:bold; border-radius:5px; cursor:pointer; }
+.login-box button:hover { background:#e6c200; }
+.google-btn { background:#4285F4; color:#fff; margin-top:10px; }
+.google-btn:hover { background:#357ae8; }
+p { margin-top:10px; }
+</style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+<div class="login-box">
+<h2>Welcome to Freezy Global</h2>
+
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p>or</p>
+<div id="g_id_onload"
+     data-client_id="147450066943-gnnaj72ngssv2kqsmr3aqu9q5nh0vmo8.apps.googleusercontent.com"
+     data-login_uri=""
+     data-auto_prompt="false">
+</div>
+<div class="g_id_signin google-btn"></div>
+
+<p>Don't have an account? <a href="#" onclick="signup()">Sign Up</a></p>
+</div>
+
+<script>
+function login() {
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const user = users.find(u => u.email===email && u.pass===pass);
+  if(user){
+    localStorage.setItem("loggedInUser", JSON.stringify(user));
+    window.location.href="index.html";
+  } else alert("Invalid email or password!");
+}
+
+function signup() {
+  const email = prompt("Enter your email:");
+  const pass = prompt("Enter your password:");
+  if(!email || !pass) return alert("Email and password required");
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  if(users.find(u=>u.email===email)) return alert("User already exists");
+  users.push({email, pass});
+  localStorage.setItem("users", JSON.stringify(users));
+  alert("Account created! You can now login.");
+}
+</script>
+</body>
+</html>
