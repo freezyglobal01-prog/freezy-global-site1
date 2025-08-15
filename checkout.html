@@ -1,3 +1,7 @@
+<script>
+const user = JSON.parse(localStorage.getItem("loggedInUser"));
+if(!user){ window.location.href="login.html"; }
+</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,48 +9,105 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout - Freezy Global</title>
 <link rel="stylesheet" href="style.css">
-<script src="products.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; background:#f5f5f5; margin:0; padding:0; }
+  header { background:#000; color:#FFD700; text-align:center; padding:20px; }
+  header h1 { margin:0; font-size:2rem; }
+  nav a { color:#FFD700; margin:0 10px; text-decoration:none; }
+  section { display:flex; flex-wrap:wrap; max-width:1000px; margin:30px auto; gap:20px; }
+
+  /* Left column - customer info */
+  .checkout-left { flex:1 1 350px; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); }
+  .checkout-left h2 { margin-top:0; }
+  .checkout-left input { width:100%; padding:12px; margin:10px 0; border-radius:5px; border:1px solid #ccc; }
+  #payButton { background:#FFD700; color:#000; padding:15px; font-weight:bold; border:none; border-radius:5px; cursor:pointer; width:100%; margin-top:10px; transition:0.2s; }
+  #payButton:hover { background:#e6c200; }
+
+  /* Right column - order summary */
+  .checkout-right { flex:1 1 350px; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); }
+  .checkout-right h2 { margin-top:0; }
+  .checkout-right .item { display:flex; justify-content:space-between; margin:10px 0; border-bottom:1px solid #ddd; padding-bottom:5px; }
+  .checkout-right .total { font-weight:bold; font-size:1.2rem; margin-top:20px; text-align:right; }
+  
+  @media(max-width:768px){ section { flex-direction:column; } }
+</style>
 <script src="cart.js"></script>
-<script src="https://js.paystack.co/v1/inline.js"></script>
 </head>
 <body>
 <header>
-<h1>Checkout</h1>
+<h1>Freezy Global Checkout</h1>
 <nav>
-<a href="index.html">Home</a>
-<a href="services.html">Services</a>
-<a href="products.html">Products</a>
-<a href="cart.html">Cart</a>
+<a href="index.html">Home</a> | 
+<a href="services.html">Services</a> | 
+<a href="products.html">Products</a> | 
+<a href="cart.html">Cart</a> | 
 <a href="admin.html">Admin</a>
 </nav>
 </header>
 
 <section>
-<h2>Order Summary</h2>
-<div id="cartItems"></div>
-<h3 id="cartTotal"></h3>
+<!-- Left: Customer Info -->
+<div class="checkout-left">
+<h2>Customer Details</h2>
+<input type="text" id="customerName" placeholder="Your Name">
+<input type="email" id="customerEmail" placeholder="Your Email">
 <button id="payButton">Pay Now</button>
+</div>
+
+<!-- Right: Order Summary -->
+<div class="checkout-right">
+<h2>Order Summary</h2>
+<div id="checkoutItems"></div>
+<p class="total">Total: ₦<span id="checkoutTotal">0</span></p>
+</div>
+</section>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
-  renderCart();
-  document.getElementById("payButton").addEventListener("click",()=>{
-    const total = cart.reduce((acc,item)=>acc+item.price*item.qty,0)*100; // kobo
+document.addEventListener("DOMContentLoaded", () => {
+  const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+  const container = document.getElementById("checkoutItems");
+  let total = 0;
+
+  cartItems.forEach(item => {
+    const subtotal = item.price * item.qty;
+    total += subtotal;
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `<span>${item.name} x ${item.qty}</span><span>₦${subtotal}</span>`;
+    container.appendChild(div);
+  });
+
+  document.getElementById("checkoutTotal").textContent = total;
+
+  document.getElementById("payButton").addEventListener("click", () => {
+    const name = document.getElementById("customerName").value;
+    const email = document.getElementById("customerEmail").value;
+
+    if (!name || !email) { alert("Please enter your name and email"); return; }
+
     let handler = PaystackPop.setup({
-      key: 'pk_live_31ccec42c86cb47ea9d3b0af6eeb6d2dc9c08291',
-      email: 'customer@example.com',
-      amount: total,
-      currency: 'NGN',
+      key: "YOUR_PUBLIC_KEY", // Replace with your Paystack public key
+      email: email,
+      amount: total * 100,
+      currency: "NGN",
+      metadata: { custom_fields: [{ display_name:"Name", variable_name:"name", value:name }] },
       callback: function(response){
-        alert('Payment complete! Reference: '+response.reference);
+        const order = { reference: response.reference, amount: total, items: cartItems, customer: { name, email }, date:new Date().toLocaleString() };
+        localStorage.setItem("lastOrder", JSON.stringify(order));
+
+        const orders = JSON.parse(localStorage.getItem("orders")) || [];
+        orders.push(order);
+        localStorage.setItem("orders", JSON.stringify(orders));
+
         clearCart();
-        window.location.href="index.html";
+        window.location.href = "thankyou.html";
       },
-      onClose: function(){ alert('Payment closed'); }
+      onClose: function(){ alert("Payment window closed"); }
     });
     handler.openIframe();
   });
 });
 </script>
-</section>
 </body>
 </html>
