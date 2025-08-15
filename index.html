@@ -1,7 +1,3 @@
-<script>
-const user = JSON.parse(localStorage.getItem("loggedInUser"));
-if(!user){ window.location.href="login.html"; }
-</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,32 +5,120 @@ if(!user){ window.location.href="login.html"; }
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Freezy Global</title>
 <link rel="stylesheet" href="style.css">
-<script src="products.js"></script>
 <script src="cart.js"></script>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#f5f5f5;}
+header{background:#000;color:#FFD700;padding:20px;text-align:center;}
+header img.logo{width:120px;animation: spin 2s linear infinite;}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+nav a{color:#FFD700;margin:0 10px;text-decoration:none;font-weight:bold;}
+.categories{display:flex;justify-content:center;margin:20px 0;flex-wrap:wrap;gap:10px;}
+.categories button{padding:10px 20px;border:none;background:#FFD700;color:#000;border-radius:5px;cursor:pointer;transition:.2s;}
+.categories button:hover{background:#e6c200;}
+.products,.services{display:flex;flex-wrap:wrap;justify-content:center;gap:20px;}
+.card{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.2);width:200px;text-align:center;}
+.card img{width:100%;border-radius:10px;}
+button.cart-btn{background:#000;color:#FFD700;border:none;padding:8px 12px;margin-top:10px;cursor:pointer;border-radius:5px;}
+button.whatsapp-btn{background:#25D366;color:#fff;border:none;padding:8px 12px;margin-top:10px;cursor:pointer;border-radius:5px;}
+.floating-cart{position:fixed;bottom:20px;right:20px;background:#FFD700;color:#000;padding:15px 20px;border-radius:50px;cursor:pointer;box-shadow:0 0 15px rgba(0,0,0,0.3);display:none;font-weight:bold;}
+</style>
 </head>
 <body>
+<script>
+const user=JSON.parse(localStorage.getItem("loggedInUser"));if(!user){window.location.href="login.html";}
+</script>
+
 <header>
+<img src="logo.png" alt="Logo" class="logo">
 <h1>Freezy Global</h1>
 <p>Creating Ideas, Designing Dreams</p>
 <nav>
-<a href="index.html">Home</a>
-<a href="services.html">Services</a>
-<a href="products.html">Products</a>
-<a href="cart.html">Cart</a>
-<a href="admin.html">Admin</a>
+<a href="index.html">Home</a> | 
+<a href="services.html">Services</a> | 
+<a href="products.html">Products</a> | 
+<a href="checkout.html">Checkout</a>
 </nav>
 </header>
 
-<section>
-<h2>Featured Services</h2>
-<div class="services-grid">
-  <script>
-    products.filter(p=>p.type==="service").slice(0,6).forEach(p=>{
-      document.write(`
-      <div class="card">
-        <img src="${p.img}" alt="${p.name}">
-        <h3>${p.name}</h3>
-        <p>₦${p.price}</p>
+<div class="categories">
+<button onclick="showCategory('products')">Products</button>
+<button onclick="showCategory('services')">Services</button>
+</div>
+
+<div id="products" class="products"></div>
+<div id="services" class="services"></div>
+
+<div class="floating-cart" id="floatingCart" onclick="window.location.href='checkout.html'">
+🛒 Cart (<span id="cartCount">0</span>)
+</div>
+
+<script>
+// Sample data
+const productsList=[{id:1,name:"Phone Case",price:1500,category:"phones",img:"https://via.placeholder.com/200"},
+{id:2,name:"Headphones",price:3000,category:"audio",img:"https://via.placeholder.com/200"}];
+const servicesList=[{id:1,name:"Logo Design",img:"https://via.placeholder.com/200",whatsapp:"https://wa.me/2348120610962?text=I want Logo Design"}];
+
+// Show category
+function showCategory(type){
+  if(type==="products"){
+    document.getElementById("products").innerHTML="";
+    productsList.forEach(p=>{
+      const card=document.createElement("div");card.className="card";
+      card.innerHTML=`<img src="${p.img}"><h3>${p.name}</h3><p>₦${p.price}</p>
+      <div>
+        <button onclick="changeQty(${p.id},-1)">-</button>
+        <span id="qty-${p.id}">1</span>
+        <button onclick="changeQty(${p.id},1)">+</button>
+      </div>
+      <button class="cart-btn" onclick="addToCart(${p.id})">Add to Cart</button>`;
+      document.getElementById("products").appendChild(card);
+    });
+    document.getElementById("products").style.display="flex";
+    document.getElementById("services").style.display="none";
+  } else {
+    document.getElementById("services").innerHTML="";
+    servicesList.forEach(s=>{
+      const card=document.createElement("div");card.className="card";
+      card.innerHTML=`<img src="${s.img}"><h3>${s.name}</h3>
+      <button class="whatsapp-btn" onclick="window.open('${s.whatsapp}','_blank')">Message on WhatsApp</button>`;
+      document.getElementById("services").appendChild(card);
+    });
+    document.getElementById("services").style.display="flex";
+    document.getElementById("products").style.display="none";
+  }
+}
+
+// Quantity functions
+function changeQty(id,delta){
+  const span=document.getElementById(`qty-${id}`);
+  let val=parseInt(span.innerText)+delta;if(val<1)val=1;span.innerText=val;
+}
+
+// Floating cart
+function updateFloatingCart(){
+  const cart=JSON.parse(localStorage.getItem("cart"))||[];
+  if(cart.length>0){
+    document.getElementById("floatingCart").style.display="block";
+    let count=0; cart.forEach(p=>count+=p.qty);
+    document.getElementById("cartCount").innerText=count;
+  } else document.getElementById("floatingCart").style.display="none";
+}
+
+function addToCart(id){
+  const product=productsList.find(p=>p.id===id);
+  const qty=parseInt(document.getElementById(`qty-${id}`).innerText);
+  let cart=JSON.parse(localStorage.getItem("cart"))||[];
+  const exist=cart.find(c=>c.id===id);
+  if(exist) exist.qty+=qty; else cart.push({...product,qty});
+  localStorage.setItem("cart",JSON.stringify(cart));
+  updateFloatingCart();
+}
+
+updateFloatingCart();
+showCategory('products');
+</script>
+</body>
+</html>        <p>₦${p.price}</p>
         <button onclick="addToCart(${p.id})">Add to Cart</button>
       </div>`);
     });
