@@ -3,38 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login - Freezy Global</title>
+<title>Freezy Global Login</title>
 <link rel="stylesheet" href="style.css">
 <style>
-body { font-family: Arial, sans-serif; background:#f5f5f5; display:flex; justify-content:center; align-items:center; height:100vh; }
-.login-box { background:#fff; padding:30px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.2); width:350px; text-align:center; }
-.login-box h2 { color:#000; margin-bottom:20px; }
+body { font-family: Arial, sans-serif; margin:0; display:flex; justify-content:center; align-items:center; height:100vh; background:#f5f5f5; }
+.splash { text-align:center; }
+.splash img { width:150px; animation: spin 2s linear infinite; }
+@keyframes spin {0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+.login-box { background:#fff; padding:30px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.2); width:350px; margin-top:20px; display:none; }
 .login-box input { width:100%; padding:12px; margin:10px 0; border-radius:5px; border:1px solid #ccc; }
-.login-box button { width:100%; padding:12px; margin-top:10px; border:none; background:#FFD700; color:#000; font-weight:bold; border-radius:5px; cursor:pointer; }
+.login-box button { width:100%; padding:12px; background:#FFD700; color:#000; font-weight:bold; border:none; border-radius:5px; cursor:pointer; }
 .login-box button:hover { background:#e6c200; }
-.google-btn { background:#4285F4; color:#fff; margin-top:10px; }
-.google-btn:hover { background:#357ae8; }
-p { margin-top:10px; }
 </style>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-<div class="login-box">
-<h2>Welcome to Freezy Global</h2>
+<div class="splash">
+<img src="logo.png" alt="Freezy Global Logo">
+<h1>Freezy Global</h1>
+<p>Creating Ideas, Designing Dreams</p>
+</div>
 
+<div class="login-box" id="loginBox">
+<h2>Login</h2>
 <input type="email" id="email" placeholder="Email">
 <input type="password" id="password" placeholder="Password">
 <button onclick="login()">Login</button>
-<p>or</p>
-<div id="g_id_onload"
-     data-client_id="572791242557-d1tc2ictjrjch7b55m2bterqi6724n30.apps.googleusercontent.com"
-     data-login_uri=""
-     data-auto_prompt="false">
-</div>
-<div class="g_id_signin google-btn"></div>
-
 <p>Don't have an account? <a href="#" onclick="signup()">Sign Up</a></p>
 </div>
+
+<script>
+setTimeout(()=>{ document.getElementById("loginBox").style.display="block"; }, 2000); // show login after splash
+
+function login(){
+  const email=document.getElementById("email").value;
+  const pass=document.getElementById("password").value;
+  const users=JSON.parse(localStorage.getItem("users"))||[];
+  const user=users.find(u=>u.email===email && u.pass===pass);
+  if(user){ localStorage.setItem("loggedInUser",JSON.stringify(user)); window.location.href="index.html"; }
+  else alert("Invalid email or password");
+}
+
+function signup(){
+  const email=prompt("Enter email:");
+  const pass=prompt("Enter password:");
+  if(!email||!pass) return alert("Email and password required");
+  let users=JSON.parse(localStorage.getItem("users"))||[];
+  if(users.find(u=>u.email===email)) return alert("User already exists");
+  users.push({email,pass});
+  localStorage.setItem("users",JSON.stringify(users));
+  alert("Account created! Login now.");
+}
+</script>
+</body>
+</html></div>
 
 <script>
 function login() {
