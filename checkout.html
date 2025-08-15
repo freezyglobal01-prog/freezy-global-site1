@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("payButton").addEventListener("click",()=>{
     const total = cart.reduce((acc,item)=>acc+item.price*item.qty,0)*100; // kobo
     let handler = PaystackPop.setup({
-      key: 'sk_live_30e433ac3fcf692c8f3e3c3b328ede85554427d4',
+      key: 'pk_live_31ccec42c86cb47ea9d3b0af6eeb6d2dc9c08291',
       email: 'customer@example.com',
       amount: total,
       currency: 'NGN',
