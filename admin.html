@@ -29,15 +29,15 @@
 <h2>Manage Products/Services</h2>
 <div id="productList"></div>
 
-<h3>Add New Product/Service</h3>
+<h3>Add / Edit Product/Service</h3>
 <input type="text" id="newName" placeholder="Name">
 <input type="number" id="newPrice" placeholder="Price">
 <select id="newType">
   <option value="product">Product</option>
   <option value="service">Service</option>
 </select>
-<input type="text" id="newImg" placeholder="Image URL">
-<button onclick="addProduct()">Add</button>
+<input type="file" id="newImg">
+<button onclick="addOrUpdateProduct()">Save</button>
 
 <h3>Orders</h3>
 <div id="orderList"></div>
@@ -53,33 +53,73 @@ function loginAdmin(){
   if(input===sessionStorage.getItem("adminPass")){
     document.getElementById("adminPanel").style.display="block";
     renderProductList();
+    renderOrders();
   } else alert("Wrong password!");
 }
 
-// Product management
+let editId = null; // null = add, number = edit
+
+function addOrUpdateProduct(){
+  const name = document.getElementById("newName").value;
+  const price = parseInt(document.getElementById("newPrice").value);
+  const type = document.getElementById("newType").value;
+  const fileInput = document.getElementById("newImg");
+  
+  if(!name || !price) { alert("Enter name and price"); return; }
+  
+  if(fileInput.files && fileInput.files[0]){
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const imgData = e.target.result;
+      saveProduct(name, price, type, imgData);
+    }
+    reader.readAsDataURL(fileInput.files[0]);
+  } else {
+    const imgData = editId ? products.find(p=>p.id===editId).img : "https://via.placeholder.com/250x150";
+    saveProduct(name, price, type, imgData);
+  }
+}
+
+function saveProduct(name, price, type, imgData){
+  if(editId){ // update
+    const p = products.find(p=>p.id===editId);
+    p.name=name; p.price=price; p.type=type; p.img=imgData;
+    editId=null;
+  } else { // add new
+    const id = Math.max(...products.map(p=>p.id))+1;
+    products.push({id,name,price,type,img:imgData});
+  }
+  renderProductList();
+  clearForm();
+}
+
+function clearForm(){
+  document.getElementById("newName").value="";
+  document.getElementById("newPrice").value="";
+  document.getElementById("newType").value="product";
+  document.getElementById("newImg").value="";
+}
+
 function renderProductList(){
   const list = document.getElementById("productList");
   list.innerHTML="";
   products.forEach(p=>{
     const div = document.createElement("div");
     div.className="card";
-    div.innerHTML=`${p.name} - ₦${p.price} (${p.type}) 
-    <button onclick="editProduct(${p.id})">Edit</button>
-    <button onclick="removeProduct(${p.id})">Remove</button>`;
+    div.innerHTML=`<img src="${p.img}" width="150">
+      ${p.name} - ₦${p.price} (${p.type}) 
+      <button onclick="editProduct(${p.id})">Edit</button>
+      <button onclick="removeProduct(${p.id})">Remove</button>`;
     list.appendChild(div);
   });
 }
 
-function addProduct(){
-  const name = document.getElementById("newName").value;
-  const price = parseInt(document.getElementById("newPrice").value);
-  const type = document.getElementById("newType").value;
-  const img = document.getElementById("newImg").value || "https://via.placeholder.com/250x150";
-  if(name && price){
-    const id = Math.max(...products.map(p=>p.id))+1;
-    products.push({id,name,price,type,img});
-    renderProductList();
-  }
+function editProduct(id){
+  const p = products.find(p=>p.id===id);
+  document.getElementById("newName").value=p.name;
+  document.getElementById("newPrice").value=p.price;
+  document.getElementById("newType").value=p.type;
+  editId=id;
 }
 
 function removeProduct(id){
@@ -87,24 +127,18 @@ function removeProduct(id){
   if(index>-1){ products.splice(index,1); renderProductList(); }
 }
 
-function editProduct(id){
-  const p = products.find(p=>p.id===id);
-  const newPrice = prompt("Enter new price for "+p.name,p.price);
-  if(newPrice){ p.price=parseInt(newPrice); renderProductList(); }
-}
-
 // Orders from localStorage (paid only)
 function renderOrders(){
   const orders = JSON.parse(localStorage.getItem("orders"))||[];
   const container = document.getElementById("orderList");
   container.innerHTML="";
+  if(orders.length===0){ container.textContent="No orders yet"; return; }
   orders.forEach(o=>{
     const div = document.createElement("div");
     div.textContent=`Order Ref: ${o.reference}, Amount: ₦${o.amount/100}`;
     container.appendChild(div);
   });
 }
-renderOrders();
 </script>
 </section>
 </body>
