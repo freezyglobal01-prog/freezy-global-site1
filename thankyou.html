@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thank You - Freezy Global</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* Header & banner */
+  header { background:#000; color:#FFD700; text-align:center; padding:20px; position:relative; }
+  header h1 { font-size:2.5rem; margin-bottom:5px; }
+  header p { margin-top:0; font-style:italic; }
+
+  .banner { width:100%; max-height:250px; overflow:hidden; margin-top:20px; border-radius:10px; }
+  .banner img { width:100%; object-fit:cover; }
+
+  /* Main section */
+  section { max-width:900px; margin:40px auto; background:#fff; padding:30px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.2); text-align:center; }
+  section h2 { color:#000; margin-bottom:20px; }
+  
+  /* Table */
+  table { width:100%; border-collapse:collapse; margin:20px 0; }
+  table, th, td { border:1px solid #ddd; }
+  th, td { padding:12px; text-align:center; }
+  th { background:#FFD700; color:#000; }
+
+  /* Buttons */
+  button { background:#FFD700; color:#000; border:none; padding:12px 25px; font-weight:bold; border-radius:5px; cursor:pointer; margin-top:20px; transition:0.2s; }
+  button:hover { background:#e6c200; }
+
+  /* Responsive */
+  @media(max-width:600px){
+    table, th, td { font-size:12px; }
+    header h1 { font-size:1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+<h1>Freezy Global</h1>
+<p>Creating Ideas, Designing Dreams</p>
+<nav>
+<a href="index.html">Home</a> | 
+<a href="services.html">Services</a> | 
+<a href="products.html">Products</a> | 
+<a href="cart.html">Cart</a> | 
+<a href="admin.html">Admin</a>
+</nav>
+
+<!-- Banner Image -->
+<div class="banner">
+  <img src="https://via.placeholder.com/1200x250?text=Thank+You+for+Shopping+with+Freezy+Global" alt="Thank You Banner">
+</div>
+</header>
+
+<section>
+<h2>Thank You for Your Purchase!</h2>
+<p>Your order has been successfully processed.</p>
+
+<h3>Order Summary</h3>
+<table id="orderSummary">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Quantity</th>
+      <th>Price (₦)</th>
+      <th>Subtotal (₦)</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<p><strong>Total: ₦<span id="orderTotal"></span></strong></p>
+<p>Order Reference: <span id="orderRef"></span></p>
+<button onclick="window.location.href='index.html'">Return to Home</button>
+</section>
+
+<script src="cart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", ()=>{
+  // Get last order and cart from localStorage
+  const lastOrder = JSON.parse(localStorage.getItem("lastOrder"));
+  const cartItems = JSON.parse(localStorage.getItem("cart")) || [];
+
+  const tbody = document.querySelector("#orderSummary tbody");
+  let total=0;
+
+  cartItems.forEach(item=>{
+    const subtotal = item.price*item.qty;
+    total += subtotal;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.name}</td>
+      <td>${item.qty}</td>
+      <td>${item.price}</td>
+      <td>${subtotal}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById("orderTotal").textContent = total;
+  document.getElementById("orderRef").textContent = lastOrder ? lastOrder.reference : "N/A";
+
+  // Clear cart after showing summary
+  clearCart();
+});
+</script>
+</body>
+</html>
