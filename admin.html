@@ -1,40 +1,187 @@
-<script>
-const user = JSON.parse(localStorage.getItem("loggedInUser"));
-if(!user){ window.location.href="login.html"; }
-</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Freezy Global</title>
+<title>Admin Panel - Freezy Global</title>
 <link rel="stylesheet" href="style.css">
-<script src="products.js"></script>
-<script src="cart.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;}
+h1,h2{color:#000;}
+section{background:#fff;padding:20px;border-radius:10px;margin-bottom:20px;box-shadow:0 0 15px rgba(0,0,0,0.2);}
+input,button,select{padding:10px;margin:5px 0;border-radius:5px;border:1px solid #ccc;}
+button{background:#FFD700;color:#000;border:none;cursor:pointer;}
+button:hover{background:#e6c200;}
+table{width:100%;border-collapse:collapse;}
+table,th,td{border:1px solid #ccc;}
+th,td{padding:10px;text-align:center;}
+</style>
 </head>
 <body>
-<header>
 <h1>Admin Panel</h1>
-<nav>
-<a href="index.html">Home</a>
-<a href="services.html">Services</a>
-<a href="products.html">Products</a>
-<a href="cart.html">Cart</a>
-<a href="admin.html">Admin</a>
-</nav>
-</header>
+
+<div id="loginSection">
+<h2>Enter Admin Password</h2>
+<input type="password" id="adminPass" placeholder="Password">
+<button onclick="checkAdmin()">Login</button>
+</div>
+
+<div id="adminSection" style="display:none;">
 
 <section>
-<h2>Admin Login</h2>
-<input type="password" id="adminPasswordInput" placeholder="Enter password">
-<button onclick="loginAdmin()">Login</button>
+<h2>Change Admin Password</h2>
+<input type="password" id="newPass" placeholder="New Password">
+<button onclick="changePassword()">Change Password</button>
+</section>
 
-<div id="adminPanel">
-<h2>Manage Products/Services</h2>
-<div id="productList"></div>
+<section>
+<h2>Products Management</h2>
+<input type="text" id="prodName" placeholder="Product Name">
+<input type="number" id="prodPrice" placeholder="Price">
+<input type="text" id="prodImg" placeholder="Image URL">
+<button onclick="addProduct()">Add Product</button>
+<table id="prodTable">
+<tr><th>ID</th><th>Name</th><th>Price</th><th>Image</th><th>Actions</th></tr>
+</table>
+</section>
 
-<h3>Add / Edit Product/Service</h3>
-<input type="text" id="newName" placeholder="Name">
+<section>
+<h2>Services Management</h2>
+<input type="text" id="servName" placeholder="Service Name">
+<input type="text" id="servImg" placeholder="Image URL">
+<input type="text" id="servWhats" placeholder="WhatsApp Link">
+<button onclick="addService()">Add Service</button>
+<table id="servTable">
+<tr><th>ID</th><th>Name</th><th>Image</th><th>WhatsApp</th><th>Actions</th></tr>
+</table>
+</section>
+
+<section>
+<h2>Orders</h2>
+<table id="orderTable">
+<tr><th>Date</th><th>Customer</th><th>Items</th><th>Delivery Fee</th><th>Total</th></tr>
+</table>
+</section>
+
+</div>
+
+<script>
+// Default admin password
+if(!localStorage.getItem("adminPass")) localStorage.setItem("adminPass","1234");
+
+// Login check
+function checkAdmin(){
+  const pass=document.getElementById("adminPass").value;
+  if(pass===localStorage.getItem("adminPass")){
+    document.getElementById("loginSection").style.display="none";
+    document.getElementById("adminSection").style.display="block";
+    loadProducts();
+    loadServices();
+    loadOrders();
+  } else alert("Incorrect Password");
+}
+
+// Change password
+function changePassword(){
+  const newP=document.getElementById("newPass").value;
+  if(newP){ localStorage.setItem("adminPass",newP); alert("Password changed successfully"); document.getElementById("newPass").value=""; }
+  else alert("Enter a new password");
+}
+
+// Products
+function loadProducts(){
+  let products=JSON.parse(localStorage.getItem("products"))||[];
+  const table=document.getElementById("prodTable");
+  table.innerHTML='<tr><th>ID</th><th>Name</th><th>Price</th><th>Image</th><th>Actions</th></tr>';
+  products.forEach(p=>{
+    const row=table.insertRow();
+    row.innerHTML=`<td>${p.id}</td><td>${p.name}</td><td>${p.price}</td><td><img src="${p.img}" width="50"></td>
+    <td><button onclick="editProduct(${p.id})">Edit</button><button onclick="deleteProduct(${p.id})">Delete</button></td>`;
+  });
+}
+function addProduct(){
+  const name=document.getElementById("prodName").value;
+  const price=document.getElementById("prodPrice").value;
+  const img=document.getElementById("prodImg").value;
+  if(!name||!price||!img) return alert("Fill all fields");
+  let products=JSON.parse(localStorage.getItem("products"))||[];
+  const id=products.length?products[products.length-1].id+1:1;
+  products.push({id,name,price, img});
+  localStorage.setItem("products",JSON.stringify(products));
+  document.getElementById("prodName").value="";document.getElementById("prodPrice").value="";document.getElementById("prodImg").value="";
+  loadProducts();
+}
+function editProduct(id){
+  let products=JSON.parse(localStorage.getItem("products"));
+  const p=products.find(x=>x.id===id);
+  const name=prompt("Edit Name",p.name);
+  const price=prompt("Edit Price",p.price);
+  const img=prompt("Edit Image URL",p.img);
+  if(name) p.name=name;if(price) p.price=price;if(img) p.img=img;
+  localStorage.setItem("products",JSON.stringify(products));
+  loadProducts();
+}
+function deleteProduct(id){
+  let products=JSON.parse(localStorage.getItem("products"));
+  products=products.filter(p=>p.id!==id);
+  localStorage.setItem("products",JSON.stringify(products));
+  loadProducts();
+}
+
+// Services
+function loadServices(){
+  let services=JSON.parse(localStorage.getItem("services"))||[];
+  const table=document.getElementById("servTable");
+  table.innerHTML='<tr><th>ID</th><th>Name</th><th>Image</th><th>WhatsApp</th><th>Actions</th></tr>';
+  services.forEach(s=>{
+    const row=table.insertRow();
+    row.innerHTML=`<td>${s.id}</td><td>${s.name}</td><td><img src="${s.img}" width="50"></td><td>${s.whatsapp}</td>
+    <td><button onclick="editService(${s.id})">Edit</button><button onclick="deleteService(${s.id})">Delete</button></td>`;
+  });
+}
+function addService(){
+  const name=document.getElementById("servName").value;
+  const img=document.getElementById("servImg").value;
+  const whatsapp=document.getElementById("servWhats").value;
+  if(!name||!img||!whatsapp) return alert("Fill all fields");
+  let services=JSON.parse(localStorage.getItem("services"))||[];
+  const id=services.length?services[services.length-1].id+1:1;
+  services.push({id,name,img,whatsapp});
+  localStorage.setItem("services",JSON.stringify(services));
+  document.getElementById("servName").value="";document.getElementById("servImg").value="";document.getElementById("servWhats").value="";
+  loadServices();
+}
+function editService(id){
+  let services=JSON.parse(localStorage.getItem("services"));
+  const s=services.find(x=>x.id===id);
+  const name=prompt("Edit Name",s.name);
+  const img=prompt("Edit Image URL",s.img);
+  const whatsapp=prompt("Edit WhatsApp Link",s.whatsapp);
+  if(name) s.name=name;if(img) s.img=img;if(whatsapp)s.whatsapp=whatsapp;
+  localStorage.setItem("services",JSON.stringify(services));
+  loadServices();
+}
+function deleteService(id){
+  let services=JSON.parse(localStorage.getItem("services"));
+  services=services.filter(s=>s.id!==id);
+  localStorage.setItem("services",JSON.stringify(services));
+  loadServices();
+}
+
+// Orders
+function loadOrders(){
+  const orders=JSON.parse(localStorage.getItem("orders"))||[];
+  const table=document.getElementById("orderTable");
+  table.innerHTML='<tr><th>Date</th><th>Customer</th><th>Items</th><th>Delivery Fee</th><th>Total</th></tr>';
+  orders.forEach(o=>{
+    const items=o.items.map(i=>`${i.name} x ${i.qty}`).join(", ");
+    const row=table.insertRow();
+    row.innerHTML=`<td>${o.date}</td><td>${o.customer.name}</td><td>${items}</td><td>₦${o.deliveryFee}</td><td>₦${o.total}</td>`;
+  });
+}
+</script>
+</body>
+</html><input type="text" id="newName" placeholder="Name">
 <input type="number" id="newPrice" placeholder="Price">
 <select id="newType">
   <option value="product">Product</option>
